@@ -2,8 +2,9 @@
 package Server.Databases;
 
 import java.sql.*;
+import java.util.Properties;
 
-class DBConn{
+public class DBConn{
     private String driver;
     private String url;
 
@@ -25,18 +26,27 @@ class DBConn{
 
     }
 
-    public void openConn(){
+    /**
+     * Opens connection to the Database
+     */
+    private void openConn(){
         try{
             Class.forName(this.driver);
             System.out.println("connecting to db");
-            this.conn = DriverManager.getConnection(this.url, this.user, this.pass);
+            Properties prop = new Properties();
+            prop.setProperty("user", this.user);
+            prop.setProperty("password", this.pass);
+            this.conn = DriverManager.getConnection(this.url, prop);
         }
         catch (Exception e){
             System.out.print(e.getMessage());
         }
     }
 
-    public void closeConn(){
+    /**
+     * Closes connection to the database
+     */
+    private void closeConn(){
         try{
             conn.close();
         }
@@ -45,16 +55,121 @@ class DBConn{
         }
     }
 
-    public void insertUser(){
+    /**
+     *
+     * @param fName first name of the user
+     * @param lName last name of the user
+     * @param uName UserName of the user - will be unique
+     * @param passwrd password
+     * @param start starting amount for users Portfolio to buy stocks
+     * @return number of rows affected to indicate that it was successful in adding the new user
+     */
+    public int insertUser(String fName, String lName, String uName, String passwrd, double start){
+        try{
+            this.openConn();
+            String sql = "INSERT INTO user_data(first_name, last_name, username, passwrd, portfolio) VALUES(?, ?, ?, ?, ?)";
 
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, fName);
+            ps.setString(2, lName);
+            ps.setString(3, uName);
+            ps.setString(4, passwrd);
+            ps.setDouble(5, start);
+
+            return ps.executeUpdate();
+
+        }
+        catch (Exception e){
+            System.out.println("INSERT USER HAS FAILED");
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        finally {
+            this.closeConn();
+        }
+        return -1;
     }
 
-    public void insertWatchList(){
+    /**
+     *
+     * @param stockName The ticker of the stock
+     * @param price the current price of the stock
+     * @param uid  identification number of the user
+     * @param status means of the stock was bought watching 1=watching, 2 = sold
+     * @return number of rows affected to indicate that it was successful in adding the stock
+     */
+    public int insertWatchList(String stockName, double price, int uid, int status){
+        try{
+            this.openConn();
 
+            String sql = "INSERT INTO watchlist(stockname, price, uid, status) VALUES (?, ?, ?, ?)";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, stockName);
+            ps.setDouble(2, price);
+            ps.setInt(3, uid);
+            ps.setInt(4, status);
+
+            return ps.executeUpdate();
+
+        }
+        catch (Exception e){
+            System.out.println("INSERT WATCHLIST HAS FAILED");
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        finally {
+            this.closeConn();
+        }
+        return -1;
     }
 
-    public void insertTransaction(){
+    /**
+     *
+     * @param stockName name of the stock
+     * @param bought price the stock when bought
+     * @param sold price of the stock when sold
+     * @param num number of stocks bought/sold
+     * @param uid id of the user that bought/sold the stock
+     * @return number of rows affected to indicate that it was successful in adding the transaction
+     */
+    public int insertTransaction(String stockName, double bought, double sold, int num, int uid){
+        try{
+            this.openConn();
 
+            String sql = "INSERT INTO transactions(stockname, price_bought, price_sold, timestmp, num, uid) VALUES (?, ?, ?, ?, ?, ?)";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, stockName);
+            if (bought <= 0){
+                ps.setObject(2, null);
+            }
+            else{
+                ps.setDouble(2, bought);
+            }
+
+            if (sold <= 0){
+                ps.setObject(3, null);
+            }
+            else{
+                ps.setDouble(3, sold);
+            }
+            ps.setTimestamp(4, new java.sql.Timestamp(new java.util.Date().getTime()));
+            ps.setInt(5, num);
+            ps.setInt(6, uid);
+
+            return ps.executeUpdate();
+
+        }
+        catch (Exception e){
+            System.out.println("INSERT TRANSACTION HAS FAILED");
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+        finally {
+            this.closeConn();
+        }
+        return -1;
     }
 
     //returns Results from db
