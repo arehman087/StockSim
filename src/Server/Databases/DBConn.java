@@ -1,7 +1,9 @@
 //add DB Code here!
 package Server.Databases;
 
+import java.net.UnknownServiceException;
 import java.sql.*;
+import java.util.Hashtable;
 import java.util.Properties;
 
 public class DBConn{
@@ -172,8 +174,46 @@ public class DBConn{
         return -1;
     }
 
-    //returns Results from db
-    public ResultSet getData(){
+    //a table with objects
+    public UserData getUser(String usr, String pswd){
+        try{
+            this.openConn();
+            Hashtable<Integer, UserData> user = new Hashtable<>();
+
+            String sql = "SELECT * FROM user_data WHERE username = (?) AND passwrd = (?)";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setString(1, usr);
+            ps.setString(2, pswd);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()){
+                int i = rs.getInt("uid");
+                String u = rs.getString("username");
+                String p = rs.getString("passwrd");
+                String f = rs.getString("first_name");
+                String l = rs.getString("last_name");
+                double m = rs.getDouble("portfolio");
+
+                UserData ud = new UserData(i, f, l, u, p, m);
+                return ud;
+            }
+            else{
+                return null;
+            }
+
+        }
+        catch(Exception e){
+            System.out.println("USER RETRIEVAL HAS FAILED");
+            System.out.println(e.getMessage());
+        }
+        finally {
+            this.closeConn();
+        }
         return null;
     }
+
+
+
 }

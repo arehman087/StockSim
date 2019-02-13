@@ -38,4 +38,17 @@ class DBConnTest {
 
         assertEquals(1, rows);
     }
+
+    @Test
+    void testUserRet(){
+        DBConn db = new DBConn();
+
+        UserData u = db.getUser("arehma7", "password");
+
+        assertNotNull(u);
+
+        u = db.getUser("jguo", "pass2");
+
+        assertNull(u);
+    }
 }
