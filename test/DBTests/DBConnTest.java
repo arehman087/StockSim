@@ -3,6 +3,8 @@ package DBTests;
 import org.junit.jupiter.api.Test;
 import Server.Databases.*;
 
+import java.util.ArrayList;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class DBConnTest {
@@ -51,4 +53,32 @@ class DBConnTest {
 
         assertNull(u);
     }
+
+    @Test
+    void testWatchData(){
+        DBConn db = new DBConn();
+
+        ArrayList<WatchData> wd = db.getWatchlist(1);
+
+        assertNotNull(wd);
+
+        wd = db.getWatchlist(2);
+
+        assertNull(wd);
+
+    }
+
+    @Test
+    void testTransData(){
+        DBConn db = new DBConn();
+
+        ArrayList<TransData> td = db.getTransaction(1, "MSFT");
+
+        assertNotNull(td);
+
+        td = db.getTransaction(2, "MSFT");
+
+        assertNull(td);
+    }
+
 }

@@ -1,8 +1,8 @@
 //add DB Code here!
 package Server.Databases;
 
-import java.net.UnknownServiceException;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Properties;
 
@@ -174,11 +174,15 @@ public class DBConn{
         return -1;
     }
 
-    //a table with objects
+    /**
+     * returns an instance of the user with the username and the password
+     * @param usr Username
+     * @param pswd Password
+     * @return instance of UserData
+     */
     public UserData getUser(String usr, String pswd){
         try{
             this.openConn();
-            Hashtable<Integer, UserData> user = new Hashtable<>();
 
             String sql = "SELECT * FROM user_data WHERE username = (?) AND passwrd = (?)";
 
@@ -214,6 +218,97 @@ public class DBConn{
         return null;
     }
 
+    /**
+     *
+     * @param uid id of the user
+     * @return list of watchlist
+     */
+    public ArrayList<WatchData> getWatchlist (int uid){
+        try{
+            this.openConn();
 
+            ArrayList <WatchData> wd = new ArrayList<>();
+            String sql = "SELECT * FROM watchlist WHERE uid = (?)";
 
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, uid);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()){
+
+                do{
+                    String s = rs.getString("stockname");
+                    double p = rs.getDouble("price");
+                    int st = rs.getInt("status");
+
+                    wd.add(new WatchData(s, p, uid, st));
+
+                }while (rs.next());
+
+                return wd;
+            }
+            else {
+                return null;
+            }
+
+        }
+        catch(Exception e){
+            System.out.println("USER RETRIEVAL HAS FAILED");
+            System.out.println(e.getMessage());
+        }
+        finally {
+            this.closeConn();
+        }
+        return null;
+    }
+
+    /**
+     *
+     * @param uid id of the user
+     * @return list of transactions
+     */
+    public ArrayList<TransData> getTransaction(int uid, String sName){
+        try{
+            this.openConn();
+
+            ArrayList <TransData> td = new ArrayList<>();
+            String sql = "SELECT * FROM transactions WHERE uid = (?) AND stockname = (?)";
+
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ps.setInt(1, uid);
+            ps.setString(2, sName);
+
+            ResultSet rs = ps.executeQuery();
+
+            if (rs.next()){
+
+                do{
+                    int t = rs.getInt("tid");
+                    String s = rs.getString("stockname");
+                    Double b = rs.getDouble("price_bought");
+                    Double so = rs.getDouble("price_sold");
+                    Timestamp ti = rs.getTimestamp("timestmp");
+                    int n = rs.getInt("num");
+
+                    td.add(new TransData(t, s, b, so, ti, n, uid));
+
+                }while (rs.next());
+
+                return td;
+            }
+            else {
+                return null;
+            }
+
+        }
+        catch(Exception e){
+            System.out.println("USER RETRIEVAL HAS FAILED");
+            System.out.println(e.getMessage());
+        }
+        finally {
+            this.closeConn();
+        }
+        return null;
+    }
 }
